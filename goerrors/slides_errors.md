@@ -2,9 +2,10 @@
 Error is one of two ways to handle errors in Go. <br>
 The other one is panic.
 
-Errors represent expected but not "positive" or "main flow" situations.
+Errors represent *expected* but not "positive" or "main flow" situations.
 
 ---
+
 
 # CONVENTIONS
 * An error is anything compatible with an error interface.
@@ -43,7 +44,7 @@ func Len(from,to int) (int,error){
 
 ---
 
-# PREDECLARED ROOT ERRORS
+# SENTINEL ERRORS
 
 ```go
 // ErrNotAllEventsEnriched is returned when ...
@@ -96,8 +97,7 @@ if err != nil {
 }
 ```
 
-There is no way to know what did actually happen
-now.
+There is no way to know what actually happened.
 
 ---
 
@@ -114,12 +114,12 @@ if err != nil {
 }
 ```
 
-Rollback returns an error too.
+Rollback returns a error too.
 
 ---
 
 # EXAMPLE 3: MULTIPLE HANDLING
-We should handle an error only once.
+We should handle a error only once.
 Logging - is handling.
 
 ```go
@@ -149,8 +149,8 @@ func DoStuff() error{
     from,to := readFromTo()
     a, err := Len(from, to)
     if err != nil {
-        // return fmt.Errorf("calc len: %w", err) // any new go code
-        return errors.Wrapf(err, "calc len for %i and %i", from, to)
+        return fmt.Errorf("calc len: %w", err)
+        // return errors.Wrapf(err, "calc len for %i and %i", from, to) // legacy approach
     }
 }
 // Result: calc len for 2 and 1: from should be less than to
@@ -170,8 +170,12 @@ Do not wrap-and-log errors to avoid it's multiple handling.
 
 # WHEN TO WRAP
 
-* Must wrap if 2 or more error-returning statements in the function
-* Can return an original error if there is only 1 return
+* Simple rule: wrap always, it wouldn't hurt.
+
+---
+
+But
+* Can skip wrapping if there is only one error-returning statement in the function
 * Refactor the first return statement before adding a second one.
 
 ---
@@ -274,9 +278,25 @@ func main() {
 
 ---
 
+# ERRORS ARE NOT EXCEPTIONS
+
+The 'exceptions' approach in many other languages mixes "unexpected" fatal errors and "flow control" errors.
+
+
+In Go, they are separated into panics (for fatal cases) and errors (flow control).
+
+---
+
+That's why errors in their concept do not need any attached stack traces:
+* They are not unexpected.
+* An app is crafted to handle them already.
+
+---
+
+
 # UNUSUAL ERROR-HANDLING
 
-* The usual error-handling case is a function that returns an error. There we have a choice between wrapping and handling.
+* The usual error-handling case is a function that returns an error and we have a choice between wrapping and handling.
 * Some functions can not return errors and this creates unusual error handling cases.
 
 ---
@@ -311,21 +331,7 @@ Copy-pasted complex error handling code
 
 ---
 
-# ERRORS ARE NOT EXCEPTIONS
-
-The 'exceptions' approach in other languages mixes unexpected fatal errors and "normal" errors that control the flow of the app.
-
-
-In Go, they are separated into panics (for fatal cases) and errors (flow control).
-
----
-
-That's why errors in their concept do not need any attached stack traces:
-* They are not unexpected.
-* An app is crafted to handle them already.
-
----
-
+# UNUSUAL ERROR-HANDLING:
 # NESTED ERROR HANDLING
 
 When using an error-returning function while handling another error
@@ -344,8 +350,9 @@ if err != nil {
 ```
 
 * Which error to return?
-    * They both can have wrapped errors that can be expected on the upper levels of the app.
+    * They both can have wrapped sentinel errors that can be expected on the upper levels of the app.
 * Do not lose error details here.
+    * `errors.Join()`
     * `return fmt.Errorf("undo error '%s' after foo error: %w", undoErr, err)`
 
 
