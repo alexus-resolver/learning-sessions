@@ -358,6 +358,34 @@ if err != nil {
 
 ---
 
+# UNUSUAL ERROR-HANDLING:
+# STATUS ERRORS
+
+```go
+	 var s pgx.Rows
+	 if s.Next() {
+        // process
+	 }
+	 if s.Err() != nil{
+
+     }
+```
+
+---
+
+# UNUSUAL ERROR-HANDLING
+
+```go
+	var c redis.Client
+	cmd := c.Set()
+	if cmd.Err() != nil {
+
+    }
+```
+
+---
+
 # FEEDBACK
-* Should I make it more basic or more hardcore?
-* Should I include some coding in a session?
+* Should I make next sessions more basic or more hardcore?
+* Should I include some coding in a session? (less information, more details)
+* What you would like to learn about go?
